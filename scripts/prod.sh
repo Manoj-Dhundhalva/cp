@@ -1,2 +1,4 @@
-APP_STAGE_ENV=prod
+#!/usr/bin/env bash
+
+export APP_STAGE=prod
 tsx src/index.ts
