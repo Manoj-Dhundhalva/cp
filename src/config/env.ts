@@ -21,9 +21,9 @@ const isTest = process.env.APP_STAGE === APP_STAGE.TEST;
 
 // Load environment-specific .env files
 if (isDevelopment) {
-  dotenv.config({ path: ".env.staging" });
+  dotenv.config({ path: ".env.staging", override: true });
 } else if (isTest) {
-  dotenv.config({ path: ".env.test" });
+  dotenv.config({ path: ".env.test", override: true });
 }
 
 const envSchema = z.object({
