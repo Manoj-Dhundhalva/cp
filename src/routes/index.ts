@@ -1,7 +1,11 @@
 import { Router } from "express";
 
+import contestRoutes from "./contest.routes.js";
+import problemRoutes from "./problem.routes.js";
+
 const router = Router();
 
-export default () => {
-  return router;
-};
+router.use("/contest", contestRoutes);
+router.use("/problem", problemRoutes);
+
+export default router;
