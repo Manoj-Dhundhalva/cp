@@ -3,7 +3,7 @@ import { z } from "zod";
 
 export const APP_STAGE = {
   STAGING: "staging",
-  PRODUCTION: "production",
+  PRODUCTION: "prod",
   TEST: "test",
 } as const;
 
