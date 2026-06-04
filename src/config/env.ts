@@ -27,25 +27,16 @@ if (isDevelopment) {
 }
 
 const envSchema = z.object({
-  NODE_ENV: z
-    .enum([NODE_ENV.DEVELOPMENT, NODE_ENV.PRODUCTION, NODE_ENV.TEST])
-    .default(NODE_ENV.DEVELOPMENT),
+  NODE_ENV: z.enum([NODE_ENV.DEVELOPMENT, NODE_ENV.PRODUCTION, NODE_ENV.TEST]).default(NODE_ENV.DEVELOPMENT),
 
-  APP_STAGE: z
-    .enum([APP_STAGE.STAGING, APP_STAGE.PRODUCTION, APP_STAGE.TEST])
-    .default(APP_STAGE.STAGING),
+  APP_STAGE: z.enum([APP_STAGE.STAGING, APP_STAGE.PRODUCTION, APP_STAGE.TEST]).default(APP_STAGE.STAGING),
 
   PORT: z.coerce.number().positive().default(3000),
   HOST: z.string().default("localhost"),
 
-  DATABASE_URL: z
-    .url()
-    .refine((url) => url.startsWith("postgresql://") || url.startsWith("postgres://"), {
-      message: "DATABASE_URL must be a PostgreSQL connection string",
-    }),
-
-  DATABASE_POOL_MIN: z.coerce.number().min(0).default(2),
-  DATABASE_POOL_MAX: z.coerce.number().positive().default(10),
+  DATABASE_URL: z.url().refine((url) => url.startsWith("postgresql://") || url.startsWith("postgres://"), {
+    message: "DATABASE_URL must be a PostgreSQL connection string",
+  }),
 
   CORS_ORIGIN: z
     .union([z.string(), z.array(z.string())])
@@ -60,9 +51,7 @@ const envSchema = z.object({
     })
     .default([]),
 
-  LOG_LEVEL: z
-    .enum(["error", "warn", "info", "debug", "trace"])
-    .default(isProduction ? "info" : "debug"),
+  LOG_LEVEL: z.enum(["error", "warn", "info", "debug", "trace"]).default(isProduction ? "info" : "debug"),
 
   RATE_LIMIT_WINDOW: z.coerce
     .number()
