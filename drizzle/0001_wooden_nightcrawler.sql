@@ -1,1 +1,0 @@
-ALTER TABLE "problems" ALTER COLUMN "rating" DROP NOT NULL;

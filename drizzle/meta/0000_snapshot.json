@@ -1,5 +1,5 @@
 {
-  "id": "732f2754-39c9-4688-a594-3579f27a4a1c",
+  "id": "290902d3-4279-49ef-8f0c-0da6ffa318d7",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -28,7 +28,7 @@
         },
         "start_time": {
           "name": "start_time",
-          "type": "timestamp",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true
         },
@@ -87,7 +87,7 @@
           "name": "rating",
           "type": "integer",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "time_limit_value": {
           "name": "time_limit_value",

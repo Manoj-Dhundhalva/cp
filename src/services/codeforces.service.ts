@@ -7,7 +7,7 @@ export const ContestSchema = z.object({
   id: z.number().int(),
   name: z.string(),
   type: z.string(),
-  phase: z.enum(["BEFORE", "FINISHED"]),
+  phase: z.string(),
   frozen: z.boolean(),
   durationSeconds: z.number().int(),
   startTimeSeconds: z.number().int(),

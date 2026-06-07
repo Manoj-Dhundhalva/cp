@@ -5,7 +5,7 @@ export const contests = pgTable("contests", {
   contestId: integer("contest_id").primaryKey(),
   contestName: text("contest_name").notNull(),
   type: text("type").notNull(),
-  startTime: timestamp("start_time").notNull(),
+  startTime: integer("start_time").notNull(),
   duration: integer("duration").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at")

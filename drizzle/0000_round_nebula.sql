@@ -2,7 +2,7 @@ CREATE TABLE "contests" (
 	"contest_id" integer PRIMARY KEY NOT NULL,
 	"contest_name" text NOT NULL,
 	"type" text NOT NULL,
-	"start_time" timestamp NOT NULL,
+	"start_time" integer NOT NULL,
 	"duration" integer NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL
@@ -12,7 +12,7 @@ CREATE TABLE "problems" (
 	"contest_id" integer NOT NULL,
 	"problem_index" text NOT NULL,
 	"title" text NOT NULL,
-	"rating" integer NOT NULL,
+	"rating" integer,
 	"time_limit_value" integer,
 	"time_limit_unit" text,
 	"memory_limit_value" integer,
