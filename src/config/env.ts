@@ -9,7 +9,6 @@ export const APP_STAGE = {
 
 process.env.APP_STAGE = process.env.APP_STAGE || APP_STAGE.STAGING;
 
-const isProduction = process.env.APP_STAGE === APP_STAGE.PROD;
 const isDevelopment = process.env.APP_STAGE === APP_STAGE.STAGING;
 const isTest = process.env.APP_STAGE === APP_STAGE.TEST;
 
@@ -32,21 +31,6 @@ const envSchema = z.object({
   DATABASE_URL: z.url().refine((url) => url.startsWith("postgresql://") || url.startsWith("postgres://"), {
     message: "DATABASE_URL must be a PostgreSQL connection string",
   }),
-
-  CORS_ORIGIN: z
-    .union([z.string(), z.array(z.string())])
-    .transform((val) => {
-      if (typeof val === "string") {
-        return val
-          .split(",")
-          .map((origin) => origin.trim())
-          .filter(Boolean);
-      }
-      return val;
-    })
-    .default([]),
-
-  LOG_LEVEL: z.enum(["error", "warn", "info", "debug", "trace"]).default(isProduction ? "info" : "debug"),
 
   RATE_LIMIT_WINDOW: z.coerce
     .number()

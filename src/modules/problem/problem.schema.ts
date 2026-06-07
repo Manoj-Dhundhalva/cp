@@ -1,10 +1,11 @@
+import { ContestIdSchema } from "@/schema/contest.schema.js";
 import { z } from "zod";
 
 export const ProblemSchema = z.object({
   problems: z
     .array(
       z.object({
-        contestId: z.number(),
+        contestId: ContestIdSchema,
         problemIndex: z.string(),
       }),
     )

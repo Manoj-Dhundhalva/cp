@@ -1,9 +1,10 @@
-import { webScraper, type WebScraperService } from "@/services/web-scraper.service.js";
 import z from "zod";
+import { webScraper, type WebScraperService } from "@/services/web-scraper.service.js";
+import { ContestIdSchema } from "@/schema/contest.schema.js";
 import { getProblemUrl, parseProblemFromHtml } from "./problem.helpers.js";
 
 export const ProblemLimitSchema = z.object({
-  value: z.number(),
+  value: z.number().nonnegative(),
   unit: z.string(),
 });
 
@@ -20,14 +21,14 @@ export const ParsedProblemSchema = z.object({
     input: z.string(),
     output: z.string(),
   }),
-  rating: z.string(),
+  rating: z.number().nullable().optional(),
   tags: z.array(z.string()),
   note: z.string(),
 });
 
 export const ProblemIdentifierSchema = z
   .object({
-    contestId: z.number().int().positive(),
+    contestId: ContestIdSchema,
     problemIndex: z.string().min(1),
   })
   .strict();
@@ -54,16 +55,17 @@ export class ProblemService {
 
   private constructor(private readonly webScraper: WebScraperService) {}
 
-  public static getInstance(): ProblemService {
+  public static getInstance(webScraper: WebScraperService): ProblemService {
     if (!ProblemService.instance) {
       ProblemService.instance = new ProblemService(webScraper);
     }
-
     return ProblemService.instance;
   }
 
   async getProblems(payload: TProblemPayload): Promise<TProblemResponse> {
-    const scrapeTasks = payload.problems.map((problem) => ({ url: getProblemUrl(problem) }));
+    const scrapeTasks = payload.problems.map((problem) => ({
+      url: getProblemUrl(problem),
+    }));
 
     const { htmlPages } = await this.webScraper.scrape({ scrapeTasks });
 
@@ -73,4 +75,4 @@ export class ProblemService {
   }
 }
 
-export const problemService = ProblemService.getInstance();
+export const problemService = ProblemService.getInstance(webScraper);
