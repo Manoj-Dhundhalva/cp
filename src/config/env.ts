@@ -3,19 +3,13 @@ import { z } from "zod";
 
 export const APP_STAGE = {
   STAGING: "staging",
-  PRODUCTION: "prod",
-  TEST: "test",
-} as const;
-
-export const NODE_ENV = {
-  DEVELOPMENT: "development",
-  PRODUCTION: "production",
+  PROD: "prod",
   TEST: "test",
 } as const;
 
 process.env.APP_STAGE = process.env.APP_STAGE || APP_STAGE.STAGING;
 
-const isProduction = process.env.APP_STAGE === APP_STAGE.PRODUCTION;
+const isProduction = process.env.APP_STAGE === APP_STAGE.PROD;
 const isDevelopment = process.env.APP_STAGE === APP_STAGE.STAGING;
 const isTest = process.env.APP_STAGE === APP_STAGE.TEST;
 
@@ -27,12 +21,13 @@ if (isDevelopment) {
 }
 
 const envSchema = z.object({
-  NODE_ENV: z.enum([NODE_ENV.DEVELOPMENT, NODE_ENV.PRODUCTION, NODE_ENV.TEST]).default(NODE_ENV.DEVELOPMENT),
-
-  APP_STAGE: z.enum([APP_STAGE.STAGING, APP_STAGE.PRODUCTION, APP_STAGE.TEST]).default(APP_STAGE.STAGING),
+  APP_STAGE: z.enum([APP_STAGE.STAGING, APP_STAGE.PROD, APP_STAGE.TEST]).default(APP_STAGE.STAGING),
 
   PORT: z.coerce.number().positive().default(3000),
-  HOST: z.string().default("localhost"),
+
+  WEB_SCRAPER_API_URL: z.url().refine((url) => url.startsWith("https://") || url.startsWith("http://"), {
+    message: "WEB_SCRAPER_API_URL must be a valid URL",
+  }),
 
   DATABASE_URL: z.url().refine((url) => url.startsWith("postgresql://") || url.startsWith("postgres://"), {
     message: "DATABASE_URL must be a PostgreSQL connection string",
@@ -56,7 +51,7 @@ const envSchema = z.object({
   RATE_LIMIT_WINDOW: z.coerce
     .number()
     .positive()
-    .default(isProduction ? 900000 : 60000),
+    .default(60 * 1000), // 1 min
 });
 
 const result = envSchema.safeParse(process.env);
@@ -81,8 +76,8 @@ export const env = result.data;
 
 export type Env = typeof env;
 
-export const isProd = () => env.NODE_ENV === NODE_ENV.PRODUCTION;
-export const isDev = () => env.NODE_ENV === NODE_ENV.DEVELOPMENT;
-export const isTestEnv = () => env.NODE_ENV === NODE_ENV.TEST;
+export const isProdEnv = () => env.APP_STAGE === APP_STAGE.PROD;
+export const isDevEnv = () => env.APP_STAGE === APP_STAGE.STAGING;
+export const isTestEnv = () => env.APP_STAGE === APP_STAGE.TEST;
 
 export default env;

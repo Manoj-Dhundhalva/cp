@@ -1,7 +1,7 @@
 import { Router } from "express";
 
-import contestRoutes from "./contest.routes.js";
-import problemRoutes from "./problem.routes.js";
+import contestRoutes from "../modules/contest/contest.routes.js";
+import problemRoutes from "../modules/problem/problem.routes.js";
 
 const router = Router();
 
