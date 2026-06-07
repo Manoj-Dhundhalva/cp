@@ -1,6 +1,7 @@
 import * as cheerio from "cheerio";
 import { Element, DataNode, Node } from "domhandler";
 import type { TParsedProblem, TProblemIdentifier } from "./problem.service.js";
+import { stringToNumber } from "@/utils/index.js";
 
 export const getProblemUrl = ({ contestId, problemIndex }: TProblemIdentifier) =>
   `https://codeforces.com/problemset/problem/${contestId}/${problemIndex}`;
@@ -88,7 +89,7 @@ export function parseProblemFromHtml(html: string): TParsedProblem {
         .get()
         .join("\n"),
     },
-    rating: $("#sidebar .tag-box").last().text().trim(),
+    rating: stringToNumber($("#sidebar .tag-box").last().text()),
     tags: $("#sidebar .tag-box")
       .slice(0, -1)
       .map((_, el) => $(el).text().trim())

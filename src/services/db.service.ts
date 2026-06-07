@@ -50,7 +50,7 @@ export class DbService {
             contestId: p.contestId,
             problemIndex: p.index,
             title: p.name,
-            rating: p.rating ?? null,
+            rating: p.rating,
             tags: p.tags,
           })),
         )
@@ -60,14 +60,12 @@ export class DbService {
 
       // Batch update solvedCount
       await db.transaction(async (tx) => {
-        await Promise.all(
-          result.problemStatistics.map((item) =>
-            tx
-              .update(problems)
-              .set({ solvedCount: item.solvedCount })
-              .where(and(eq(problems.contestId, item.contestId), eq(problems.problemIndex, item.index))),
-          ),
-        );
+        for (const item of result.problemStatistics) {
+          await tx
+            .update(problems)
+            .set({ solvedCount: item.solvedCount })
+            .where(and(eq(problems.contestId, item.contestId), eq(problems.problemIndex, item.index)));
+        }
       });
     } catch (error) {
       throw new Error(`DB insertProblemsWithConflictIgnore failed: ${String(error)}`, { cause: error });

@@ -21,7 +21,7 @@ export const ParsedProblemSchema = z.object({
     input: z.string(),
     output: z.string(),
   }),
-  rating: z.number().nullable().optional(),
+  rating: z.number().int().min(800).optional(),
   tags: z.array(z.string()),
   note: z.string(),
 });

@@ -22,7 +22,7 @@ export const problems = pgTable(
       .references(() => contests.contestId),
     problemIndex: text("problem_index").notNull(),
     title: text("title").notNull(),
-    rating: integer("rating").notNull(),
+    rating: integer("rating"),
 
     timeLimitValue: integer("time_limit_value"),
     timeLimitUnit: text("time_limit_unit"),

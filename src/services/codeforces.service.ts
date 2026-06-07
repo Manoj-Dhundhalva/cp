@@ -28,7 +28,7 @@ export const ProblemSchema = z.object({
   name: z.string(),
   type: z.string(),
   points: z.number().optional(),
-  rating: z.number().int().min(800),
+  rating: z.number().int().min(800).optional(),
   tags: z.array(z.string()),
 });
 

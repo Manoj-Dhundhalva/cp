@@ -1,6 +1,6 @@
 {
-  "id": "ffaa590f-ae96-481d-8691-b9c7cc6ef3b9",
-  "prevId": "7c60054a-54b5-4133-837b-7d6f68c41d31",
+  "id": "92ab1e62-5f41-4f48-a97c-19e3399fe103",
+  "prevId": "732f2754-39c9-4688-a594-3579f27a4a1c",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -87,7 +87,7 @@
           "name": "rating",
           "type": "integer",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "time_limit_value": {
           "name": "time_limit_value",

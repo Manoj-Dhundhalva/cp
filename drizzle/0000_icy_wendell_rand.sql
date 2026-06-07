@@ -1,7 +1,7 @@
 CREATE TABLE "contests" (
 	"contest_id" integer PRIMARY KEY NOT NULL,
 	"contest_name" text NOT NULL,
-	"writers" text[] NOT NULL,
+	"type" text NOT NULL,
 	"start_time" timestamp NOT NULL,
 	"duration" integer NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
@@ -9,23 +9,25 @@ CREATE TABLE "contests" (
 );
 --> statement-breakpoint
 CREATE TABLE "problems" (
-	"problem_id" text NOT NULL,
 	"contest_id" integer NOT NULL,
-	"index" char(1) NOT NULL,
+	"problem_index" text NOT NULL,
 	"title" text NOT NULL,
-	"time_limit" text NOT NULL,
-	"memory_limit" text NOT NULL,
 	"rating" integer NOT NULL,
-	"statement" text NOT NULL,
-	"input_specification" text NOT NULL,
-	"output_specification" text NOT NULL,
+	"time_limit_value" integer,
+	"time_limit_unit" text,
+	"memory_limit_value" integer,
+	"memory_limit_unit" text,
+	"problem_statement" text,
+	"input_specification" text,
+	"output_specification" text,
 	"note" text,
-	"input_test_case" text NOT NULL,
-	"output_test_case" text NOT NULL,
+	"input_test_case" text,
+	"output_test_case" text,
 	"tags" text[] DEFAULT '{}' NOT NULL,
+	"solved_count" integer DEFAULT 0,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL,
-	CONSTRAINT "problems_problem_id_contest_id_pk" PRIMARY KEY("problem_id","contest_id")
+	CONSTRAINT "problems_problem_index_contest_id_pk" PRIMARY KEY("problem_index","contest_id")
 );
 --> statement-breakpoint
 ALTER TABLE "problems" ADD CONSTRAINT "problems_contest_id_contests_contest_id_fk" FOREIGN KEY ("contest_id") REFERENCES "public"."contests"("contest_id") ON DELETE no action ON UPDATE no action;
