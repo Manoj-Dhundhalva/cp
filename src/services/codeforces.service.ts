@@ -2,6 +2,7 @@ import axios, { type AxiosInstance } from "axios";
 import z from "zod";
 import { ContestIdSchema } from "@/schema/contest.schema.js";
 import { handleServiceApiError } from "./helpers/index.js";
+import env from "@/config/env.js";
 
 export const ContestSchema = z.object({
   id: z.number().int(),
@@ -55,14 +56,12 @@ export class CodeforcesService {
 
   private client: AxiosInstance;
 
-  private readonly BASE_URL = "https://codeforces.com/api" as const;
-
-  private readonly CONTEST_LIST_ENDPOINT = "/contest.list" as const;
-  private readonly PROBLEMSET_PROBLEMS_ENDPOINT = "/problemset.problems" as const;
+  private readonly CONTEST_LIST_ENDPOINT = "/api/contest.list" as const;
+  private readonly PROBLEMSET_PROBLEMS_ENDPOINT = "/api/problemset.problems" as const;
 
   private constructor() {
     this.client = axios.create({
-      baseURL: this.BASE_URL,
+      baseURL: env.CODEFORCES_BASE_URL,
       timeout: 15000,
       headers: {
         "Content-Type": "application/json",

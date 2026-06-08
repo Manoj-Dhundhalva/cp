@@ -9,11 +9,10 @@ export async function getFilteredProblems(
   next: NextFunction,
 ) {
   try {
+    const problems = await dbService.getProblemsByFilter(req.body);
+    await problemService.getNewProblems({ problems });
     const data = await dbService.getProblemsByFilter(req.body);
     res.status(200).json(data);
-
-    // Background DB update
-    problemService.getNewProblems({ problems: data });
   } catch (error) {
     next(error);
   }

@@ -2,9 +2,10 @@ import * as cheerio from "cheerio";
 import { Element, DataNode, Node } from "domhandler";
 import type { TParsedProblem, TProblemIdentifier } from "./problem.service.js";
 import { stringToNumber } from "@/utils/index.js";
+import env from "@/config/env.js";
 
 export const getProblemUrl = ({ contestId, problemIndex }: TProblemIdentifier) =>
-  `https://codeforces.com/problemset/problem/${contestId}/${problemIndex}`;
+  `${env.CODEFORCES_BASE_URL}/problemset/problem/${contestId}/${problemIndex}`;
 
 function extractTextAndImages(el: Element): string {
   const parts: string[] = [];
@@ -51,6 +52,8 @@ export function parseProblemFromHtml(html: string): TParsedProblem {
   const { value: memoryLimitValue, unit: memoryLimitUnit } = parseLimit(
     $(".problem-statement .header .memory-limit").contents().last().text().trim(),
   );
+
+  const editorialUrl = new URL($('a[title="Editorial"]').attr("href")!, env.CODEFORCES_BASE_URL).href;
 
   return {
     title: $(".problem-statement .header .title").text().trim(),
@@ -100,6 +103,7 @@ export function parseProblemFromHtml(html: string): TParsedProblem {
       .slice(0, -1)
       .map((_, el) => $(el).text().trim())
       .get(),
+    editorialUrl,
     note: $(".problem-statement .note")
       .map((_, el) => extractTextAndImages(el))
       .get()

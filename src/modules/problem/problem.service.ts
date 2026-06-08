@@ -17,6 +17,7 @@ export const ParsedProblemSchema = z.object({
   outputTestCase: z.string(),
   rating: z.number().int().min(800).optional(),
   tags: z.array(z.string()),
+  editorialUrl: z.url().optional(),
   note: z.string(),
 });
 
@@ -70,11 +71,12 @@ export class ProblemService {
 
     const problems = htmlPages.map((htmlPage) => parseProblemFromHtml(htmlPage));
 
-    // Background DB update
-    problems.forEach((problem, i) => {
-      if (!payload.problems[i] || !problem.problemStatement) return;
-      this.dbService.updateProblem(payload.problems[i], problem);
-    });
+    await Promise.all(
+      problems.map((problem, i) => {
+        if (!payload.problems[i] || !problem.problemStatement) return Promise.resolve();
+        return this.dbService.updateProblem(payload.problems[i], problem);
+      }),
+    );
   }
 
   async getNewProblems(payload: TProblemPayload): Promise<void> {
@@ -87,7 +89,7 @@ export class ProblemService {
       )
     ).filter((p) => p != null);
 
-    this.getProblems({ problems });
+    await this.getProblems({ problems });
   }
 }
 

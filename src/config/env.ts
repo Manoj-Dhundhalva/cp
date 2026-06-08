@@ -24,6 +24,8 @@ const envSchema = z.object({
 
   PORT: z.coerce.number().positive().default(3000),
 
+  CODEFORCES_BASE_URL: z.url().default("https://codeforces.com"),
+
   WEB_SCRAPER_API_URL: z.url().refine((url) => url.startsWith("https://") || url.startsWith("http://"), {
     message: "WEB_SCRAPER_API_URL must be a valid URL",
   }),

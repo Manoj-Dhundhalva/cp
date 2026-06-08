@@ -5,7 +5,7 @@ export const ProblemFilterSchema = z
     tags: z.array(z.string()).optional().default([]),
     rating: z.tuple([z.number().int().min(0), z.number().int().min(0)]).optional(),
     startTime: z.tuple([z.number().int().positive(), z.number().int().positive()]).optional(),
-    limit: z.number().int().min(1).max(10).optional().default(5),
+    limit: z.number().int().min(1).max(100).optional().default(5),
     sort: z
       .object({
         field: z.enum(["rating", "startTime", "contestId"]),
