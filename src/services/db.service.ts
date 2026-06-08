@@ -1,8 +1,9 @@
 import { db } from "@/db/connection.js";
 import { contests, problems } from "@/db/schema.js";
-import { and, asc, desc, eq, gte, lte, sql } from "drizzle-orm";
+import { and, arrayOverlaps, asc, desc, eq, gte, lte } from "drizzle-orm";
 import { codeforces, type CodeforcesService } from "./codeforces.service.js";
 import type { TProblemFilterBody } from "@/modules/problem/problem.schema.js";
+import type { TParsedProblem, TProblemIdentifier } from "@/modules/problem/problem.service.js";
 
 export class DbService {
   private static instance: DbService;
@@ -80,7 +81,7 @@ export class DbService {
       const conditions = [];
 
       if (tags?.length > 0) {
-        conditions.push(sql`${problems.tags} && ${tags}`);
+        conditions.push(arrayOverlaps(problems.tags, tags));
       }
 
       if (rating?.length === 2) {
@@ -143,7 +144,7 @@ export class DbService {
           solvedCount: problems.solvedCount,
         })
         .from(problems)
-        .leftJoin(contests, eq(problems.contestId, contests.contestId))
+        .innerJoin(contests, eq(problems.contestId, contests.contestId))
         .where(conditions.length ? and(...conditions) : undefined)
         .orderBy(orderBy)
         .limit(limit);
@@ -151,6 +152,47 @@ export class DbService {
       return result;
     } catch (error) {
       throw new Error(`DB getProblemsByFilter failed: ${String(error)}`, { cause: error });
+    }
+  }
+
+  async updateProblem(payload: TProblemIdentifier, problem: TParsedProblem) {
+    try {
+      await db
+        .update(problems)
+        .set({
+          timeLimitValue: problem.timeLimitValue,
+          timeLimitUnit: problem.timeLimitUnit,
+
+          memoryLimitValue: problem.memoryLimitValue,
+          memoryLimitUnit: problem.memoryLimitUnit,
+
+          problemStatement: problem.problemStatement,
+
+          inputSpecification: problem.inputSpecification,
+          outputSpecification: problem.outputSpecification,
+
+          note: problem.note,
+
+          inputTestCase: problem.inputTestCase,
+          outputTestCase: problem.outputTestCase,
+        })
+        .where(and(eq(problems.contestId, payload.contestId), eq(problems.problemIndex, payload.problemIndex)));
+    } catch (error) {
+      throw new Error(`DB updateProblem failed: ${String(error)}`, { cause: error });
+    }
+  }
+
+  async isProblemScraped(payload: TProblemIdentifier): Promise<boolean> {
+    try {
+      const result = await db
+        .select({ problemStatement: problems.problemStatement })
+        .from(problems)
+        .where(and(eq(problems.contestId, payload.contestId), eq(problems.problemIndex, payload.problemIndex)))
+        .limit(1);
+
+      return Boolean(result[0]?.problemStatement);
+    } catch (error) {
+      throw new Error(`DB getProblemStatement failed: ${String(error)}`, { cause: error });
     }
   }
 }

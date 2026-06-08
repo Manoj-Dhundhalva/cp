@@ -1,5 +1,5 @@
 {
-  "id": "290902d3-4279-49ef-8f0c-0da6ffa318d7",
+  "id": "12369f87-5209-4a57-8208-9c59276a1727",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -91,7 +91,7 @@
         },
         "time_limit_value": {
           "name": "time_limit_value",
-          "type": "integer",
+          "type": "real",
           "primaryKey": false,
           "notNull": false
         },

@@ -1,26 +1,20 @@
 import z from "zod";
 import { webScraper, type WebScraperService } from "@/services/web-scraper.service.js";
+import { dbService, type DbService } from "@/services/db.service.js";
 import { ContestIdSchema } from "@/schema/contest.schema.js";
 import { getProblemUrl, parseProblemFromHtml } from "./problem.helpers.js";
 
-export const ProblemLimitSchema = z.object({
-  value: z.number().nonnegative(),
-  unit: z.string(),
-});
-
 export const ParsedProblemSchema = z.object({
   title: z.string(),
-  timeLimit: ProblemLimitSchema,
-  memoryLimit: ProblemLimitSchema,
+  timeLimitValue: z.number().positive(),
+  timeLimitUnit: z.string(),
+  memoryLimitValue: z.number().positive(),
+  memoryLimitUnit: z.string(),
   problemStatement: z.string(),
-  specification: z.object({
-    input: z.string(),
-    output: z.string(),
-  }),
-  testCase: z.object({
-    input: z.string(),
-    output: z.string(),
-  }),
+  inputSpecification: z.string(),
+  outputSpecification: z.string(),
+  inputTestCase: z.string(),
+  outputTestCase: z.string(),
   rating: z.number().int().min(800).optional(),
   tags: z.array(z.string()),
   note: z.string(),
@@ -53,16 +47,21 @@ export type TProblemResponse = z.infer<typeof ProblemResponseSchema>;
 export class ProblemService {
   private static instance: ProblemService;
 
-  private constructor(private readonly webScraper: WebScraperService) {}
+  private constructor(
+    private readonly webScraper: WebScraperService,
+    private readonly dbService: DbService,
+  ) {}
 
-  public static getInstance(webScraper: WebScraperService): ProblemService {
+  public static getInstance(webScraper: WebScraperService, dbService: DbService): ProblemService {
     if (!ProblemService.instance) {
-      ProblemService.instance = new ProblemService(webScraper);
+      ProblemService.instance = new ProblemService(webScraper, dbService);
     }
     return ProblemService.instance;
   }
 
-  async getProblems(payload: TProblemPayload): Promise<TProblemResponse> {
+  private async getProblems(payload: TProblemPayload): Promise<void> {
+    if (payload.problems.length === 0) return;
+
     const scrapeTasks = payload.problems.map((problem) => ({
       url: getProblemUrl(problem),
     }));
@@ -71,8 +70,25 @@ export class ProblemService {
 
     const problems = htmlPages.map((htmlPage) => parseProblemFromHtml(htmlPage));
 
-    return { problems };
+    // Background DB update
+    problems.forEach((problem, i) => {
+      if (!payload.problems[i] || !problem.problemStatement) return;
+      this.dbService.updateProblem(payload.problems[i], problem);
+    });
+  }
+
+  async getNewProblems(payload: TProblemPayload): Promise<void> {
+    const problems = (
+      await Promise.all(
+        payload.problems.map(async (p) => {
+          const isScraped = await this.dbService.isProblemScraped(p);
+          return isScraped ? null : p;
+        }),
+      )
+    ).filter((p) => p != null);
+
+    this.getProblems({ problems });
   }
 }
 
-export const problemService = ProblemService.getInstance(webScraper);
+export const problemService = ProblemService.getInstance(webScraper, dbService);

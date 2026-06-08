@@ -13,7 +13,7 @@ CREATE TABLE "problems" (
 	"problem_index" text NOT NULL,
 	"title" text NOT NULL,
 	"rating" integer,
-	"time_limit_value" integer,
+	"time_limit_value" real,
 	"time_limit_unit" text,
 	"memory_limit_value" integer,
 	"memory_limit_unit" text,

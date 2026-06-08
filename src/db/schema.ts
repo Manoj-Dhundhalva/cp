@@ -1,4 +1,4 @@
-import { pgTable, text, integer, timestamp, primaryKey } from "drizzle-orm/pg-core";
+import { pgTable, text, integer, timestamp, primaryKey, real } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
 export const contests = pgTable("contests", {
@@ -24,7 +24,7 @@ export const problems = pgTable(
     title: text("title").notNull(),
     rating: integer("rating"),
 
-    timeLimitValue: integer("time_limit_value"),
+    timeLimitValue: real("time_limit_value"),
     timeLimitUnit: text("time_limit_unit"),
 
     memoryLimitValue: integer("memory_limit_value"),

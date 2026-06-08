@@ -23,12 +23,12 @@ export class WebScraperService {
 
   private client: AxiosInstance;
 
-  private readonly SCRAPE_ENDPOINT = "/api/scrape" as const;
+  private readonly SCRAPE_ENDPOINT = "/api/scraper" as const;
 
   private constructor() {
     this.client = axios.create({
       baseURL: env.WEB_SCRAPER_API_URL,
-      timeout: 30000,
+      timeout: 3 * 60 * 1000,
       headers: {
         "Content-Type": "application/json",
       },

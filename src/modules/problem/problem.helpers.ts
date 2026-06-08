@@ -44,10 +44,20 @@ function parseLimit(text: string) {
 export function parseProblemFromHtml(html: string): TParsedProblem {
   const $ = cheerio.load(html);
 
+  const { value: timeLimitValue, unit: timeLimitUnit } = parseLimit(
+    $(".problem-statement .header .time-limit").contents().last().text().trim(),
+  );
+
+  const { value: memoryLimitValue, unit: memoryLimitUnit } = parseLimit(
+    $(".problem-statement .header .memory-limit").contents().last().text().trim(),
+  );
+
   return {
     title: $(".problem-statement .header .title").text().trim(),
-    timeLimit: parseLimit($(".problem-statement .header .time-limit").contents().last().text().trim()),
-    memoryLimit: parseLimit($(".problem-statement .header .memory-limit").contents().last().text().trim()),
+    timeLimitValue,
+    timeLimitUnit,
+    memoryLimitValue,
+    memoryLimitUnit,
     problemStatement: $(".problem-statement")
       .children("div")
       .not(".header")
@@ -55,40 +65,36 @@ export function parseProblemFromHtml(html: string): TParsedProblem {
       .map((_, el) => extractTextAndImages(el))
       .get()
       .join(" "),
-    specification: {
-      input: $(".problem-statement .input-specification p")
-        .map((_, el) => extractTextAndImages(el))
-        .get()
-        .join(" "),
-      output: $(".problem-statement .output-specification p")
-        .map((_, el) => extractTextAndImages(el))
-        .get()
-        .join(" "),
-    },
-    testCase: {
-      input: $(".problem-statement .sample-test .input pre")
-        .map((_, el) =>
-          $(el)
-            .contents()
-            .map((_, node) => $(node).text().trim())
-            .get()
-            .filter(Boolean)
-            .join("\n"),
-        )
-        .get()
-        .join("\n"),
-      output: $(".problem-statement .sample-test .output pre")
-        .map((_, el) =>
-          $(el)
-            .contents()
-            .map((_, node) => $(node).text().trim())
-            .get()
-            .filter(Boolean)
-            .join("\n"),
-        )
-        .get()
-        .join("\n"),
-    },
+    inputSpecification: $(".problem-statement .input-specification p")
+      .map((_, el) => extractTextAndImages(el))
+      .get()
+      .join(" "),
+    outputSpecification: $(".problem-statement .output-specification p")
+      .map((_, el) => extractTextAndImages(el))
+      .get()
+      .join(" "),
+    inputTestCase: $(".problem-statement .sample-test .input pre")
+      .map((_, el) =>
+        $(el)
+          .contents()
+          .map((_, node) => $(node).text().trim())
+          .get()
+          .filter(Boolean)
+          .join("\n"),
+      )
+      .get()
+      .join("\n"),
+    outputTestCase: $(".problem-statement .sample-test .output pre")
+      .map((_, el) =>
+        $(el)
+          .contents()
+          .map((_, node) => $(node).text().trim())
+          .get()
+          .filter(Boolean)
+          .join("\n"),
+      )
+      .get()
+      .join("\n"),
     rating: stringToNumber($("#sidebar .tag-box").last().text()),
     tags: $("#sidebar .tag-box")
       .slice(0, -1)
