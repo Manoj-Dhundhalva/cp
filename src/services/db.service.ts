@@ -1,7 +1,7 @@
 import { db } from "@/db/connection.js";
 import { contests, problems } from "@/db/schema.js";
 import { and, arrayOverlaps, asc, desc, eq, gte, lte } from "drizzle-orm";
-import { codeforces, type CodeforcesService } from "./codeforces.service.js";
+import { CodeforcesService } from "./codeforces.service.js";
 import type { TProblemFilterBody } from "@/modules/problem/problem.schema.js";
 import type { TParsedProblem, TProblemIdentifier } from "@/modules/problem/problem.service.js";
 
@@ -10,10 +10,11 @@ export class DbService {
 
   private constructor(private readonly codeforces: CodeforcesService) {}
 
-  public static getInstance(codeforces: CodeforcesService): DbService {
+  public static getInstance(): DbService {
     if (!DbService.instance) {
-      DbService.instance = new DbService(codeforces);
+      DbService.instance = new DbService(CodeforcesService.getInstance());
     }
+
     return DbService.instance;
   }
 
@@ -59,16 +60,6 @@ export class DbService {
         .onConflictDoNothing({
           target: [problems.contestId, problems.problemIndex],
         });
-
-      // // Batch update solvedCount
-      // await db.transaction(async (tx) => {
-      //   for (const item of result.problemStatistics) {
-      //     await tx
-      //       .update(problems)
-      //       .set({ solvedCount: item.solvedCount })
-      //       .where(and(eq(problems.contestId, item.contestId), eq(problems.problemIndex, item.index)));
-      //   }
-      // });
     } catch (error) {
       throw new Error(`DB insertProblemsWithConflictIgnore failed: ${String(error)}`, { cause: error });
     }
@@ -141,7 +132,6 @@ export class DbService {
           outputTestCase: problems.outputTestCase,
 
           note: problems.note,
-          solvedCount: problems.solvedCount,
         })
         .from(problems)
         .innerJoin(contests, eq(problems.contestId, contests.contestId))
@@ -160,6 +150,8 @@ export class DbService {
       await db
         .update(problems)
         .set({
+          isScraped: true,
+
           timeLimitValue: problem.timeLimitValue,
           timeLimitUnit: problem.timeLimitUnit,
 
@@ -182,19 +174,20 @@ export class DbService {
     }
   }
 
-  async isProblemScraped(payload: TProblemIdentifier): Promise<boolean> {
+  async getUnscrapedProblems(): Promise<TProblemIdentifier[]> {
     try {
-      const result = await db
-        .select({ problemStatement: problems.problemStatement })
+      const results = await db
+        .select({
+          contestId: problems.contestId,
+          problemIndex: problems.problemIndex,
+        })
         .from(problems)
-        .where(and(eq(problems.contestId, payload.contestId), eq(problems.problemIndex, payload.problemIndex)))
-        .limit(1);
-
-      return Boolean(result[0]?.problemStatement);
+        .where(eq(problems.isScraped, false));
+      return results;
     } catch (error) {
-      throw new Error(`DB getProblemStatement failed: ${String(error)}`, { cause: error });
+      throw new Error(`DB getUnscrapedProblems failed: ${String(error)}`, { cause: error });
     }
   }
 }
 
-export const dbService = DbService.getInstance(codeforces);
+export const dbService = DbService.getInstance();

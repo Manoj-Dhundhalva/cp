@@ -1,8 +1,8 @@
 import * as cheerio from "cheerio";
 import { Element, DataNode, Node } from "domhandler";
 import type { TParsedProblem, TProblemIdentifier } from "./problem.service.js";
-import { stringToNumber } from "@/utils/index.js";
 import env from "@/config/env.js";
+import { utils } from "@/utils/index.js";
 
 export const getProblemUrl = ({ contestId, problemIndex }: TProblemIdentifier) =>
   `${env.CODEFORCES_BASE_URL}/problemset/problem/${contestId}/${problemIndex}`;
@@ -98,7 +98,7 @@ export function parseProblemFromHtml(html: string): TParsedProblem {
       )
       .get()
       .join("\n"),
-    rating: stringToNumber($("#sidebar .tag-box").last().text()),
+    rating: utils.stringToNumber($("#sidebar .tag-box").last().text()),
     tags: $("#sidebar .tag-box")
       .slice(0, -1)
       .map((_, el) => $(el).text().trim())

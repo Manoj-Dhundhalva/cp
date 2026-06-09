@@ -4,7 +4,7 @@ import cors from "cors";
 
 import router from "@/routes/index.js";
 import { errorHandler, limiter } from "@/middlewares/index.js";
-import { isProdEnv } from "./config/env.js";
+import { isProdEnv } from "@/config/env.js";
 
 const app = express();
 
