@@ -1,9 +1,10 @@
 import { db } from "@/db/connection.js";
 import { contests, problems } from "@/db/schema.js";
-import { and, arrayOverlaps, asc, desc, eq, gte, lte } from "drizzle-orm";
+import { and, arrayOverlaps, asc, desc, eq, gte, isNotNull, like, lte, sql } from "drizzle-orm";
 import { CodeforcesService } from "./codeforces.service.js";
 import type { TProblemFilterBody } from "@/modules/problem/problem.schema.js";
-import type { TParsedProblem, TProblemIdentifier } from "@/modules/problem/problem.service.js";
+import type { TContestEditorial, TParsedProblem, TProblemIdentifier } from "@/modules/problem/problem.service.js";
+import env from "@/config/env.js";
 
 export class DbService {
   private static instance: DbService;
@@ -169,8 +170,43 @@ export class DbService {
           outputTestCase: problem.outputTestCase,
         })
         .where(and(eq(problems.contestId, payload.contestId), eq(problems.problemIndex, payload.problemIndex)));
+
+      if (problem.editorialUrl) {
+        await db
+          .update(contests)
+          .set({ editorialUrl: problem.editorialUrl })
+          .where(eq(contests.contestId, payload.contestId));
+      }
     } catch (error) {
       throw new Error(`DB updateProblem failed: ${String(error)}`, { cause: error });
+    }
+  }
+
+  async updateSolution(payload: TProblemIdentifier, solutions: string[]): Promise<void> {
+    try {
+      await db
+        .update(problems)
+        .set({ solutions })
+        .where(and(eq(problems.contestId, payload.contestId), eq(problems.problemIndex, payload.problemIndex)));
+    } catch (error) {
+      throw new Error(`DB updateSolution failed: ${String(error)}`, { cause: error });
+    }
+  }
+
+  async getUnscrapedEditorials(): Promise<TContestEditorial[]> {
+    try {
+      return await db
+        .select({
+          contestId: contests.contestId,
+          problemIndexes: sql<string[]>`array_agg(${problems.problemIndex} order by ${problems.problemIndex})`,
+          editorialUrl: sql<string>`${contests.editorialUrl}`,
+        })
+        .from(contests)
+        .innerJoin(problems, eq(contests.contestId, problems.contestId))
+        .where(and(isNotNull(contests.editorialUrl), like(contests.editorialUrl, `${env.CODEFORCES_BASE_URL}/%`)))
+        .groupBy(contests.contestId, contests.editorialUrl);
+    } catch (error) {
+      throw new Error(`DB getUnscrapedEditorials failed: ${String(error)}`, { cause: error });
     }
   }
 
@@ -182,7 +218,8 @@ export class DbService {
           problemIndex: problems.problemIndex,
         })
         .from(problems)
-        .where(eq(problems.isScraped, false));
+        // .where(eq(problems.isScraped, false));
+        .where(and(eq(problems.isScraped, false), gte(problems.rating, 1200), lte(problems.rating, 2000)));
       return results;
     } catch (error) {
       throw new Error(`DB getUnscrapedProblems failed: ${String(error)}`, { cause: error });

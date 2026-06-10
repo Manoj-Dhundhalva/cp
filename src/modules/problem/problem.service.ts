@@ -3,7 +3,7 @@ import { WebScraperService } from "@/services/web-scraper.service.js";
 import { DbService } from "@/services/db.service.js";
 import { ContestIdSchema } from "@/schema/contest.schema.js";
 import { utils } from "@/utils/index.js";
-import { getProblemUrl, parseProblemFromHtml } from "./problem.helpers.js";
+import { getProblemUrl, parseProblemFromHtml, parseSolutionFromHtml } from "./problem.helpers.js";
 
 export const ParsedProblemSchema = z.object({
   title: z.string(),
@@ -21,6 +21,16 @@ export const ParsedProblemSchema = z.object({
   editorialUrl: z.url(),
   note: z.string(),
 });
+
+export type TContestEditorial = {
+  contestId: number;
+  problemIndexes: string[];
+  editorialUrl: string;
+};
+
+export type TContestEditorialPayload = {
+  editorials: TContestEditorial[];
+};
 
 export const ProblemIdentifierSchema = z
   .object({
@@ -61,11 +71,29 @@ export class ProblemService {
     return ProblemService.instance;
   }
 
-  async init() {
-    await this.scrapeProblemsInBatches();
+  private async updateSolution(payload: TContestEditorialPayload): Promise<void> {
+    if (payload.editorials.length === 0) return;
+
+    const scrapeTasks = payload.editorials.map((editorial) => ({ url: editorial.editorialUrl }));
+
+    const { htmlPages } = await this.webScraper.scrape({ scrapeTasks });
+
+    const results = htmlPages.map((htmlPage) => parseSolutionFromHtml(htmlPage));
+
+    await Promise.all(
+      payload.editorials.flatMap((editorial, i) => {
+        const contestSolutions = results[i] ?? [];
+        const contestId = editorial.contestId;
+
+        return editorial.problemIndexes.map((problemIndex, j) => {
+          const problemSolutions = contestSolutions[j] ?? [];
+          return this.dbService.updateSolution({ contestId, problemIndex }, problemSolutions);
+        });
+      }),
+    );
   }
 
-  private async getProblems(payload: TProblemPayload): Promise<void> {
+  private async updateProblem(payload: TProblemPayload): Promise<void> {
     if (payload.problems.length === 0) return;
 
     const scrapeTasks = payload.problems.map((problem) => ({ url: getProblemUrl(problem) }));
@@ -82,7 +110,7 @@ export class ProblemService {
     );
   }
 
-  private async scrapeProblemsInBatches(batchSize = 25): Promise<void> {
+  async scrapeProblemsInBatches(batchSize = 10): Promise<void> {
     const problems = await this.dbService.getUnscrapedProblems();
 
     console.log(`Found ${problems.length} unscraped problems`);
@@ -94,7 +122,7 @@ export class ProblemService {
 
       console.log(`Processing batch ${batchNumber}/${totalBatches} (${batch.length} problems)`);
 
-      await this.getProblems({ problems: batch });
+      await this.updateProblem({ problems: batch });
 
       console.log(`Completed batch ${batchNumber}/${totalBatches}`);
 
@@ -102,6 +130,28 @@ export class ProblemService {
     }
 
     console.log("Problem scraping completed");
+  }
+
+  async scrapeSolutionsInBatches(batchSize = 5): Promise<void> {
+    const editorials = await this.dbService.getUnscrapedEditorials();
+
+    console.log(`Found ${editorials.length} unscraped editorials`);
+
+    for (let i = 0; i < editorials.length; i += batchSize) {
+      const batch = editorials.slice(i, i + batchSize);
+      const batchNumber = Math.floor(i / batchSize) + 1;
+      const totalBatches = Math.ceil(editorials.length / batchSize);
+
+      console.log(`Processing batch ${batchNumber}/${totalBatches} (${batch.length} problems)`);
+
+      await this.updateSolution({ editorials });
+
+      console.log(`Completed batch ${batchNumber}/${totalBatches}`);
+
+      await utils.sleep(1000);
+    }
+
+    console.log("Editorials scraping completed");
   }
 }
 

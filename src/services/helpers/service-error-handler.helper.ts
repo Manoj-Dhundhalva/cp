@@ -3,8 +3,7 @@ import { ZodError } from "zod";
 
 export function handleServiceApiError(service: string, error: unknown): never {
   if (axios.isAxiosError(error)) {
-    const message = error.response?.data?.message ?? error.response?.data ?? error.message ?? "Unknown Axios error";
-    throw new Error(`${service} API error: ${message}`, { cause: error });
+    throw new Error(`${service} API error: ${JSON.stringify(error)}`, { cause: error });
   }
 
   if (error instanceof ZodError) {

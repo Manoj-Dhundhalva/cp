@@ -56,8 +56,8 @@ export class CodeforcesService {
 
   private client: AxiosInstance;
 
-  private readonly CONTEST_LIST_ENDPOINT = "/api/contest.list" as const;
-  private readonly PROBLEMSET_PROBLEMS_ENDPOINT = "/api/problemset.problems" as const;
+  private static readonly CONTEST_LIST_ENDPOINT = "/api/contest.list";
+  private static readonly PROBLEMSET_PROBLEMS_ENDPOINT = "/api/problemset.problems";
 
   private constructor() {
     this.client = axios.create({
@@ -73,13 +73,12 @@ export class CodeforcesService {
     if (!CodeforcesService.instance) {
       CodeforcesService.instance = new CodeforcesService();
     }
-
     return CodeforcesService.instance;
   }
 
   async getContests(): Promise<TContestListResponse> {
     try {
-      const res = await this.client.get(this.CONTEST_LIST_ENDPOINT);
+      const res = await this.client.get(CodeforcesService.CONTEST_LIST_ENDPOINT);
       const parsed = ContestListResponseSchema.parse(res.data);
       return parsed;
     } catch (error) {
@@ -89,7 +88,7 @@ export class CodeforcesService {
 
   async getProblems(): Promise<TProblemsetProblemsResponse> {
     try {
-      const res = await this.client.get(this.PROBLEMSET_PROBLEMS_ENDPOINT);
+      const res = await this.client.get(CodeforcesService.PROBLEMSET_PROBLEMS_ENDPOINT);
       const parsed = ProblemsetProblemsResponseSchema.parse(res.data);
       return parsed;
     } catch (error) {

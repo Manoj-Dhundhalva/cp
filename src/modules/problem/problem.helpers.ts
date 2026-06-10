@@ -53,7 +53,16 @@ export function parseProblemFromHtml(html: string): TParsedProblem {
     $(".problem-statement .header .memory-limit").contents().last().text().trim(),
   );
 
-  const editorialUrl = new URL($('a[title="Editorial"]').attr("href")!, env.CODEFORCES_BASE_URL).href;
+  const editorialHref = $("#sidebar ul li a")
+    .toArray()
+    .find((el) => {
+      const title = $(el).attr("title") ?? "";
+      const href = $(el).attr("href") ?? "";
+
+      return (title.includes("Editorial") || title.includes("Tutorial")) && href.startsWith("/blog/entry/");
+    })?.attribs.href;
+
+  const editorialUrl = editorialHref ? new URL(editorialHref, env.CODEFORCES_BASE_URL).href : "";
 
   return {
     title: $(".problem-statement .header .title").text().trim(),
@@ -109,4 +118,24 @@ export function parseProblemFromHtml(html: string): TParsedProblem {
       .get()
       .join(" "),
   };
+}
+
+export function parseSolutionFromHtml(html: string): string[][] {
+  const $ = cheerio.load(html);
+
+  const solutions: string[][] = [];
+
+  $(".content .ttypography > .spoiler").each((_, spoiler) => {
+    const codes = $(spoiler)
+      .children(".spoiler-content")
+      .find("pre code")
+      .map((_, code) => $(code).text().trim())
+      .get();
+
+    if (codes.length) {
+      solutions.push(codes);
+    }
+  });
+
+  return solutions;
 }

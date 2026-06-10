@@ -1,5 +1,5 @@
 {
-  "id": "12369f87-5209-4a57-8208-9c59276a1727",
+  "id": "89565f57-ad8c-4faa-97dd-1e6bdbc579f6",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -18,13 +18,15 @@
           "name": "contest_name",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false,
+          "default": "''"
         },
         "type": {
           "name": "type",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false,
+          "default": "''"
         },
         "start_time": {
           "name": "start_time",
@@ -37,6 +39,13 @@
           "type": "integer",
           "primaryKey": false,
           "notNull": true
+        },
+        "editorial_url": {
+          "name": "editorial_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "''"
         },
         "created_at": {
           "name": "created_at",
@@ -81,7 +90,8 @@
           "name": "title",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false,
+          "default": "''"
         },
         "rating": {
           "name": "rating",
@@ -99,7 +109,8 @@
           "name": "time_limit_unit",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "default": "''"
         },
         "memory_limit_value": {
           "name": "memory_limit_value",
@@ -111,43 +122,50 @@
           "name": "memory_limit_unit",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "default": "''"
         },
         "problem_statement": {
           "name": "problem_statement",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "default": "''"
         },
         "input_specification": {
           "name": "input_specification",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "default": "''"
         },
         "output_specification": {
           "name": "output_specification",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "default": "''"
         },
         "note": {
           "name": "note",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "default": "''"
         },
         "input_test_case": {
           "name": "input_test_case",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "default": "''"
         },
         "output_test_case": {
           "name": "output_test_case",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "default": "''"
         },
         "tags": {
           "name": "tags",
@@ -156,12 +174,19 @@
           "notNull": true,
           "default": "'{}'"
         },
-        "solved_count": {
-          "name": "solved_count",
-          "type": "integer",
+        "is_scraped": {
+          "name": "is_scraped",
+          "type": "boolean",
           "primaryKey": false,
-          "notNull": false,
-          "default": 0
+          "notNull": true,
+          "default": false
+        },
+        "solutions": {
+          "name": "solutions",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'"
         },
         "created_at": {
           "name": "created_at",

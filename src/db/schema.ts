@@ -3,10 +3,11 @@ import { relations } from "drizzle-orm";
 
 export const contests = pgTable("contests", {
   contestId: integer("contest_id").primaryKey(),
-  contestName: text("contest_name").notNull(),
-  type: text("type").notNull(),
+  contestName: text("contest_name").default(""),
+  type: text("type").default(""),
   startTime: integer("start_time").notNull(),
   duration: integer("duration").notNull(),
+  editorialUrl: text("editorial_url").default(""),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at")
     .notNull()
@@ -43,6 +44,8 @@ export const problems = pgTable(
     tags: text("tags").array().notNull().default([]),
 
     isScraped: boolean("is_scraped").notNull().default(false),
+
+    solutions: text("solutions").array().notNull().default([]),
 
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at")

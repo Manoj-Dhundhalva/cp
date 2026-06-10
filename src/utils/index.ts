@@ -10,7 +10,8 @@ class Utils {
     return Utils.instance;
   }
 
-  stringToNumber(text: string): number | undefined {
+  stringToNumber(text: unknown): number | undefined {
+    if (typeof text !== "string") return undefined;
     const trimmed = text.trim();
     if (!trimmed) return undefined;
     const num = Number(trimmed);
