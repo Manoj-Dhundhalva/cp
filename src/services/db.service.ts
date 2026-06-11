@@ -294,7 +294,8 @@ export class DbService {
             sql`coalesce(cardinality(${problems.solutions}), 0) = 0`,
           ),
         )
-        .groupBy(contests.contestId, contests.editorialUrl);
+        .groupBy(contests.contestId, contests.editorialUrl)
+        .orderBy(desc(contests.contestId));
     } catch (error) {
       throw new Error(`DB getUnscrapedEditorials failed: ${String(error)}`, { cause: error });
     }
