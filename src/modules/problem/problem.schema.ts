@@ -1,5 +1,14 @@
 import { z } from "zod";
 
+export const ProblemSchema = z.object({
+  contestId: z.coerce.number().int().min(1),
+  problemIndex: z.string().min(1),
+});
+
+export const ContestSchema = z.object({
+  contestId: z.coerce.number().int().min(1),
+});
+
 export const ProblemFilterSchema = z
   .object({
     tags: z.array(z.string()).optional().default([]),
@@ -34,3 +43,5 @@ export const ProblemFilterSchema = z
   });
 
 export type TProblemFilterBody = z.infer<typeof ProblemFilterSchema>;
+export type TProblemParams = z.infer<typeof ProblemSchema>;
+export type TContestParams = z.infer<typeof ContestSchema>;

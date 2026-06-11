@@ -126,7 +126,7 @@ export class ProblemService {
 
       console.log(`Completed batch ${batchNumber}/${totalBatches}`);
 
-      await utils.sleep(1000);
+      await utils.sleep(3000);
     }
 
     console.log("Problem scraping completed");
@@ -144,11 +144,11 @@ export class ProblemService {
 
       console.log(`Processing batch ${batchNumber}/${totalBatches} (${batch.length} problems)`);
 
-      await this.updateSolution({ editorials });
+      await this.updateSolution({ editorials: batch });
 
       console.log(`Completed batch ${batchNumber}/${totalBatches}`);
 
-      await utils.sleep(1000);
+      await utils.sleep(3000);
     }
 
     console.log("Editorials scraping completed");

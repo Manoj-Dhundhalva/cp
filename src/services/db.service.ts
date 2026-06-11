@@ -66,6 +66,88 @@ export class DbService {
     }
   }
 
+  async getProblem(payload: TProblemIdentifier) {
+    try {
+      const result = await db
+        .select({
+          contestId: contests.contestId,
+          contestName: contests.contestName,
+          startTime: contests.startTime,
+          type: contests.type,
+
+          problemIndex: problems.problemIndex,
+          title: problems.title,
+          rating: problems.rating,
+          tags: problems.tags,
+
+          timeLimitValue: problems.timeLimitValue,
+          timeLimitUnit: problems.timeLimitUnit,
+
+          memoryLimitValue: problems.memoryLimitValue,
+          memoryLimitUnit: problems.memoryLimitUnit,
+
+          problemStatement: problems.problemStatement,
+
+          inputSpecification: problems.inputSpecification,
+          outputSpecification: problems.outputSpecification,
+
+          inputTestCase: problems.inputTestCase,
+          outputTestCase: problems.outputTestCase,
+
+          solutions: problems.solutions,
+
+          note: problems.note,
+        })
+        .from(problems)
+        .innerJoin(contests, eq(problems.contestId, contests.contestId))
+        .where(and(eq(problems.contestId, payload.contestId), eq(problems.problemIndex, payload.problemIndex)));
+      return result[0];
+    } catch (error) {
+      throw new Error(`DB getProblem failed: ${String(error)}`, { cause: error });
+    }
+  }
+
+  async getContestProblems(contestId: number) {
+    try {
+      const result = await db
+        .select({
+          contestId: contests.contestId,
+          contestName: contests.contestName,
+          startTime: contests.startTime,
+          type: contests.type,
+
+          problemIndex: problems.problemIndex,
+          title: problems.title,
+          rating: problems.rating,
+          tags: problems.tags,
+
+          timeLimitValue: problems.timeLimitValue,
+          timeLimitUnit: problems.timeLimitUnit,
+
+          memoryLimitValue: problems.memoryLimitValue,
+          memoryLimitUnit: problems.memoryLimitUnit,
+
+          problemStatement: problems.problemStatement,
+
+          inputSpecification: problems.inputSpecification,
+          outputSpecification: problems.outputSpecification,
+
+          inputTestCase: problems.inputTestCase,
+          outputTestCase: problems.outputTestCase,
+
+          solutions: problems.solutions,
+
+          note: problems.note,
+        })
+        .from(problems)
+        .innerJoin(contests, eq(problems.contestId, contests.contestId))
+        .where(eq(problems.contestId, contestId));
+      return result[0];
+    } catch (error) {
+      throw new Error(`DB getProblem failed: ${String(error)}`, { cause: error });
+    }
+  }
+
   async getProblemsByFilter(payload: TProblemFilterBody) {
     try {
       const { tags, rating, startTime, limit, sort } = payload;
@@ -131,6 +213,8 @@ export class DbService {
 
           inputTestCase: problems.inputTestCase,
           outputTestCase: problems.outputTestCase,
+
+          solutions: problems.solutions,
 
           note: problems.note,
         })
@@ -203,7 +287,13 @@ export class DbService {
         })
         .from(contests)
         .innerJoin(problems, eq(contests.contestId, problems.contestId))
-        .where(and(isNotNull(contests.editorialUrl), like(contests.editorialUrl, `${env.CODEFORCES_BASE_URL}/%`)))
+        .where(
+          and(
+            isNotNull(contests.editorialUrl),
+            like(contests.editorialUrl, `${env.CODEFORCES_BASE_URL}/%`),
+            sql`coalesce(cardinality(${problems.solutions}), 0) = 0`,
+          ),
+        )
         .groupBy(contests.contestId, contests.editorialUrl);
     } catch (error) {
       throw new Error(`DB getUnscrapedEditorials failed: ${String(error)}`, { cause: error });
@@ -218,8 +308,7 @@ export class DbService {
           problemIndex: problems.problemIndex,
         })
         .from(problems)
-        // .where(eq(problems.isScraped, false));
-        .where(and(eq(problems.isScraped, false), gte(problems.rating, 1200), lte(problems.rating, 2000)));
+        .where(eq(problems.isScraped, false));
       return results;
     } catch (error) {
       throw new Error(`DB getUnscrapedProblems failed: ${String(error)}`, { cause: error });
