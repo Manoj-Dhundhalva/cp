@@ -22,12 +22,20 @@ const envSchema = z.object({
 
   CODEFORCES_BASE_URL: z.url().default("https://codeforces.com"),
 
-  WEB_SCRAPER_API_URL: z.url().refine((url) => url.startsWith("https://") || url.startsWith("http://"), {
-    message: "WEB_SCRAPER_API_URL must be a valid URL",
+  WEB_SCRAPER_API_URL: z.url().refine((url) => ["http:", "https:"].includes(new URL(url).protocol), {
+    message: "WEB_SCRAPER_API_URL must use http:// or https://",
   }),
 
-  DATABASE_URL: z.url().refine((url) => url.startsWith("postgresql://") || url.startsWith("postgres://"), {
-    message: "DATABASE_URL must be a PostgreSQL connection string",
+  DATABASE_URL: z.url().check((ctx) => {
+    const protocol = new URL(ctx.value).protocol;
+
+    if (!["postgres:", "postgresql:"].includes(protocol)) {
+      ctx.issues.push({
+        code: "custom",
+        message: "DATABASE_URL must be a PostgreSQL connection string",
+        input: ctx.value,
+      });
+    }
   }),
 
   RATE_LIMIT_WINDOW: z.coerce
