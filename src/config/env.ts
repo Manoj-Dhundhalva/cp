@@ -4,23 +4,19 @@ import { z } from "zod";
 export const APP_STAGE = {
   STAGING: "staging",
   PROD: "prod",
-  TEST: "test",
 } as const;
 
 process.env.APP_STAGE = process.env.APP_STAGE || APP_STAGE.STAGING;
 
 const isDevelopment = process.env.APP_STAGE === APP_STAGE.STAGING;
-const isTest = process.env.APP_STAGE === APP_STAGE.TEST;
 
 // Load environment-specific .env files
 if (isDevelopment) {
   dotenv.config({ path: ".env.staging", override: true });
-} else if (isTest) {
-  dotenv.config({ path: ".env.test", override: true });
 }
 
 const envSchema = z.object({
-  APP_STAGE: z.enum([APP_STAGE.STAGING, APP_STAGE.PROD, APP_STAGE.TEST]).default(APP_STAGE.STAGING),
+  APP_STAGE: z.enum([APP_STAGE.STAGING, APP_STAGE.PROD]).default(APP_STAGE.STAGING),
 
   PORT: z.coerce.number().positive().default(3000),
 
@@ -64,6 +60,5 @@ export type Env = typeof env;
 
 export const isProdEnv = () => env.APP_STAGE === APP_STAGE.PROD;
 export const isDevEnv = () => env.APP_STAGE === APP_STAGE.STAGING;
-export const isTestEnv = () => env.APP_STAGE === APP_STAGE.TEST;
 
 export default env;

@@ -7,7 +7,6 @@
     "build": "tsc && tsc-alias",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "start:test": "bash scripts/test.sh",
     "start:staging": "bash scripts/staging.sh",
     "start:prod": "bash scripts/prod.sh",
     "db:generate": "drizzle-kit generate",
