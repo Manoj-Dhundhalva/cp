@@ -1,6 +1,6 @@
 import { db } from "@/db/connection.js";
 import { contests, problems } from "@/db/schema.js";
-import { and, arrayOverlaps, asc, desc, eq, gte, isNotNull, like, lte, sql } from "drizzle-orm";
+import { and, arrayOverlaps, asc, desc, eq, gte, isNotNull, isNull, like, lte, or, sql } from "drizzle-orm";
 import { CodeforcesService } from "./codeforces.service.js";
 import type { TProblemFilterBody } from "@/modules/problem/problem.schema.js";
 import type { TContestEditorial, TParsedProblem, TProblemIdentifier } from "@/modules/problem/problem.service.js";
@@ -97,6 +97,8 @@ export class DbService {
           solutions: problems.solutions,
 
           note: problems.note,
+
+          editorialUrl: contests.editorialUrl,
         })
         .from(problems)
         .innerJoin(contests, eq(problems.contestId, contests.contestId))
@@ -138,6 +140,8 @@ export class DbService {
           solutions: problems.solutions,
 
           note: problems.note,
+
+          editorialUrl: contests.editorialUrl,
         })
         .from(problems)
         .innerJoin(contests, eq(problems.contestId, contests.contestId))
@@ -150,7 +154,7 @@ export class DbService {
 
   async getProblemsByFilter(payload: TProblemFilterBody) {
     try {
-      const { tags, rating, startTime, limit, sort } = payload;
+      const { tags, rating, startTime, sort, offset, limit } = payload;
 
       const conditions = [];
 
@@ -171,21 +175,12 @@ export class DbService {
         conditions.push(lte(contests.startTime, to));
       }
 
-      let orderBy;
+      let orderBy = desc(contests.startTime);
 
-      switch (sort.field) {
-        case "rating":
-          orderBy = sort.order === "asc" ? asc(problems.rating) : desc(problems.rating);
-          break;
-
-        case "startTime":
-          orderBy = sort.order === "asc" ? asc(contests.startTime) : desc(contests.startTime);
-          break;
-
-        case "contestId":
-        default:
-          orderBy = sort.order === "asc" ? asc(contests.contestId) : desc(contests.contestId);
-          break;
+      if (sort.field === "rating") {
+        orderBy = sort.order === "asc" ? asc(problems.rating) : desc(problems.rating);
+      } else if (sort.field === "startTime") {
+        orderBy = sort.order === "asc" ? asc(contests.startTime) : desc(contests.startTime);
       }
 
       const result = await db
@@ -217,11 +212,18 @@ export class DbService {
           solutions: problems.solutions,
 
           note: problems.note,
+
+          editorialUrl: contests.editorialUrl,
         })
         .from(problems)
         .innerJoin(contests, eq(problems.contestId, contests.contestId))
-        .where(conditions.length ? and(...conditions) : undefined)
+        .where(
+          conditions.length
+            ? and(...conditions, isNotNull(problems.problemStatement), sql`trim(${problems.problemStatement}) <> ''`)
+            : undefined,
+        )
         .orderBy(orderBy)
+        .offset(offset)
         .limit(limit);
 
       return result;
@@ -235,8 +237,6 @@ export class DbService {
       await db
         .update(problems)
         .set({
-          isScraped: true,
-
           timeLimitValue: problem.timeLimitValue,
           timeLimitUnit: problem.timeLimitUnit,
 
@@ -309,7 +309,7 @@ export class DbService {
           problemIndex: problems.problemIndex,
         })
         .from(problems)
-        .where(eq(problems.isScraped, false));
+        .where(or(isNull(problems.problemStatement), sql`trim(${problems.problemStatement}) <> ''`));
       return results;
     } catch (error) {
       throw new Error(`DB getUnscrapedProblems failed: ${String(error)}`, { cause: error });

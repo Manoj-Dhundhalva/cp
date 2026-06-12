@@ -13,10 +13,10 @@ const router = Router();
 
 router.post("/filter", validateBody(ProblemFilterSchema), getFilteredProblems);
 
-router.get("/solution", getSolutions);
-router.get("/", getProblems);
-
 router.get("/:contestId/:problemIndex", validateParams(ProblemSchema), getProblem);
 router.get("/:contestId", validateParams(ContestSchema), getContestProblems);
+
+router.get("/solution/sync", getSolutions);
+router.get("/sync", getProblems);
 
 export default router;

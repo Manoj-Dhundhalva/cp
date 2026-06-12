@@ -12,34 +12,34 @@ export const ContestSchema = z.object({
 export const ProblemFilterSchema = z
   .object({
     tags: z.array(z.string()).optional().default([]),
-    rating: z.tuple([z.number().int().min(0), z.number().int().min(0)]).optional(),
-    startTime: z.tuple([z.number().int().positive(), z.number().int().positive()]).optional(),
-    limit: z.number().int().min(1).max(1000).optional().default(5),
+    rating: z.tuple([z.number().int().min(800), z.number().int().min(800)]).optional(),
+    startTime: z.tuple([z.number().int().nonnegative(), z.number().int().nonnegative()]).optional(),
+    offset: z.number().int().nonnegative().default(0),
+    limit: z.number().int().positive().default(10),
     sort: z
       .object({
-        field: z.enum(["rating", "startTime", "contestId"]),
+        field: z.enum(["rating", "startTime"]),
         order: z.enum(["asc", "desc"]),
       })
       .optional()
       .default({
-        field: "contestId",
+        field: "startTime",
         order: "desc",
       }),
   })
   .transform((data) => {
-    data.tags = [...data.tags].sort();
+    const normalizeRange = (range?: [number, number]): [number, number] | undefined => {
+      if (!range) return range;
+      const [a, b] = range;
+      return a > b ? [b, a] : [a, b];
+    };
 
-    if (data.rating?.length === 2) {
-      const [a, b] = data.rating;
-      data.rating = a > b ? [b, a] : [a, b];
-    }
-
-    if (data.startTime?.length === 2) {
-      const [a, b] = data.startTime;
-      data.startTime = a > b ? [b, a] : [a, b];
-    }
-
-    return data;
+    return {
+      ...data,
+      tags: [...data.tags].sort(),
+      rating: normalizeRange(data.rating),
+      startTime: normalizeRange(data.startTime),
+    };
   });
 
 export type TProblemFilterBody = z.infer<typeof ProblemFilterSchema>;
