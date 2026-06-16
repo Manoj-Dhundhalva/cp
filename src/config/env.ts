@@ -29,10 +29,10 @@ const envSchema = z.object({
   DATABASE_URL: z.url().check((ctx) => {
     const protocol = new URL(ctx.value).protocol;
 
-    if (!["postgres:", "postgresql:"].includes(protocol)) {
+    if (!["mysql:", "mysql2:"].includes(protocol)) {
       ctx.issues.push({
         code: "custom",
-        message: "DATABASE_URL must be a PostgreSQL connection string",
+        message: "DATABASE_URL must be a MySQL connection string",
         input: ctx.value,
       });
     }

@@ -1,12 +1,12 @@
-import { pgTable, text, integer, timestamp, primaryKey, real, boolean } from "drizzle-orm/pg-core";
+import { mysqlTable, text, varchar, int, timestamp, primaryKey, double, boolean, json } from "drizzle-orm/mysql-core";
 import { relations } from "drizzle-orm";
 
-export const contests = pgTable("contests", {
-  contestId: integer("contest_id").primaryKey(),
+export const contests = mysqlTable("contests", {
+  contestId: int("contest_id").primaryKey(),
   contestName: text("contest_name").default(""),
   type: text("type").default(""),
-  startTime: integer("start_time").notNull(),
-  duration: integer("duration").notNull(),
+  startTime: int("start_time").notNull(),
+  duration: int("duration").notNull(),
   editorialUrl: text("editorial_url").default(""),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at")
@@ -15,20 +15,20 @@ export const contests = pgTable("contests", {
     .$onUpdate(() => new Date()),
 });
 
-export const problems = pgTable(
+export const problems = mysqlTable(
   "problems",
   {
-    contestId: integer("contest_id")
+    contestId: int("contest_id")
       .notNull()
       .references(() => contests.contestId),
-    problemIndex: text("problem_index").notNull(),
+    problemIndex: varchar("problem_index", { length: 4 }).notNull(),
     title: text("title").default(""),
-    rating: integer("rating"),
+    rating: int("rating"),
 
-    timeLimitValue: real("time_limit_value"),
+    timeLimitValue: double("time_limit_value"),
     timeLimitUnit: text("time_limit_unit").default(""),
 
-    memoryLimitValue: integer("memory_limit_value"),
+    memoryLimitValue: int("memory_limit_value"),
     memoryLimitUnit: text("memory_limit_unit").default(""),
 
     problemStatement: text("problem_statement").default(""),
@@ -41,11 +41,11 @@ export const problems = pgTable(
     inputTestCase: text("input_test_case").default(""),
     outputTestCase: text("output_test_case").default(""),
 
-    tags: text("tags").array().notNull().default([]),
+    tags: json("tags").$type<string[]>().notNull().default([]),
 
     isScraped: boolean("is_scraped").notNull().default(false),
 
-    solutions: text("solutions").array().notNull().default([]),
+    solutions: json("solutions").$type<string[]>().notNull().default([]),
 
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at")

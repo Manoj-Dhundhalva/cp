@@ -1,6 +1,6 @@
 import { db } from "@/db/connection.js";
 import { contests, problems } from "@/db/schema.js";
-import { and, arrayOverlaps, asc, desc, eq, gte, isNotNull, isNull, like, lte, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gte, isNotNull, isNull, like, lte, or, sql } from "drizzle-orm";
 import { CodeforcesService } from "./codeforces.service.js";
 import type { TProblemFilterBody } from "@/modules/problem/problem.schema.js";
 import type { TContestEditorial, TParsedProblem, TProblemIdentifier } from "@/modules/problem/problem.service.js";
@@ -34,11 +34,26 @@ export class DbService {
             duration: contest.durationSeconds,
           })),
         )
-        .onConflictDoNothing({
-          target: contests.contestId,
+        .onDuplicateKeyUpdate({
+          set: { contestId: sql`${contests.contestId}` },
         });
     } catch (error) {
       throw new Error(`DB insertContestsWithConflictIgnore failed: ${String(error)}`, { cause: error });
+    }
+  }
+
+  async insertContests(contestsToInsert: (typeof contests.$inferInsert)[]): Promise<void> {
+    try {
+      if (contestsToInsert.length === 0) return;
+
+      await db
+        .insert(contests)
+        .values(contestsToInsert)
+        .onDuplicateKeyUpdate({
+          set: { contestId: sql`${contests.contestId}` },
+        });
+    } catch (error) {
+      throw new Error(`DB insertContests failed: ${String(error)}`, { cause: error });
     }
   }
 
@@ -58,8 +73,8 @@ export class DbService {
             tags: p.tags,
           })),
         )
-        .onConflictDoNothing({
-          target: [problems.contestId, problems.problemIndex],
+        .onDuplicateKeyUpdate({
+          set: { contestId: sql`${problems.contestId}` },
         });
     } catch (error) {
       throw new Error(`DB insertProblemsWithConflictIgnore failed: ${String(error)}`, { cause: error });
@@ -159,7 +174,7 @@ export class DbService {
       const conditions = [];
 
       if (tags?.length > 0) {
-        conditions.push(arrayOverlaps(problems.tags, tags));
+        conditions.push(or(...tags.map((tag) => sql`json_contains(${problems.tags}, ${JSON.stringify(tag)})`)));
       }
 
       if (rating?.length === 2) {
@@ -282,7 +297,7 @@ export class DbService {
       return await db
         .select({
           contestId: contests.contestId,
-          problemIndexes: sql<string[]>`array_agg(${problems.problemIndex} order by ${problems.problemIndex})`,
+          problemIndexes: sql<string[]>`json_arrayagg(${problems.problemIndex})`,
           editorialUrl: sql<string>`${contests.editorialUrl}`,
         })
         .from(contests)
@@ -291,7 +306,7 @@ export class DbService {
           and(
             isNotNull(contests.editorialUrl),
             like(contests.editorialUrl, `${env.CODEFORCES_BASE_URL}/%`),
-            sql`coalesce(cardinality(${problems.solutions}), 0) = 0`,
+            sql`coalesce(json_length(${problems.solutions}), 0) = 0`,
           ),
         )
         .groupBy(contests.contestId, contests.editorialUrl)

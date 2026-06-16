@@ -1,20 +1,20 @@
-import { drizzle } from "drizzle-orm/node-postgres";
-import { Pool } from "pg";
+import { drizzle } from "drizzle-orm/mysql2";
+import mysql from "mysql2/promise";
 import { env, isProdEnv } from "@/config/env.js";
 import { remember } from "@epic-web/remember";
 
-const createPool = () => {
-  return new Pool({
-    connectionString: env.DATABASE_URL,
+const createConnection = async () => {
+  return mysql.createPool({
+    uri: env.DATABASE_URL,
   });
 };
 
 let client;
 
 if (isProdEnv()) {
-  client = createPool();
+  client = await createConnection();
 } else {
-  client = remember("dbPool", () => createPool());
+  client = await remember("dbPool", () => createConnection());
 }
 
-export const db = drizzle({ client });
+export const db = drizzle(client);

@@ -13,8 +13,6 @@
     "db:push": "drizzle-kit push",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
-    "db:backup": "bash scripts/db.backup.sh",
-    "db:restore": "bash scripts/db.restore.sh",
     "prepare": "husky"
   },
   "keywords": [],
@@ -54,7 +52,7 @@
     "express": "^5.2.1",
     "express-rate-limit": "^8.5.2",
     "morgan": "^1.11.0",
-    "pg": "^8.21.0",
+    "mysql2": "^3.22.5",
     "zod": "^4.4.3"
   }
 }
