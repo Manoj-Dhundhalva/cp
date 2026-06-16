@@ -1,6 +1,6 @@
 import { db } from "@/db/connection.js";
 import { contests, problems } from "@/db/schema.js";
-import { and, asc, desc, eq, gte, isNotNull, isNull, like, lte, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gte, isNotNull, isNull, like, lte, or, SQL, sql } from "drizzle-orm";
 import { CodeforcesService } from "./codeforces.service.js";
 import type { TProblemFilterBody } from "@/modules/problem/problem.schema.js";
 import type { TContestEditorial, TParsedProblem, TProblemIdentifier } from "@/modules/problem/problem.service.js";
@@ -39,21 +39,6 @@ export class DbService {
         });
     } catch (error) {
       throw new Error(`DB insertContestsWithConflictIgnore failed: ${String(error)}`, { cause: error });
-    }
-  }
-
-  async insertContests(contestsToInsert: (typeof contests.$inferInsert)[]): Promise<void> {
-    try {
-      if (contestsToInsert.length === 0) return;
-
-      await db
-        .insert(contests)
-        .values(contestsToInsert)
-        .onDuplicateKeyUpdate({
-          set: { contestId: sql`${contests.contestId}` },
-        });
-    } catch (error) {
-      throw new Error(`DB insertContests failed: ${String(error)}`, { cause: error });
     }
   }
 
@@ -171,10 +156,11 @@ export class DbService {
     try {
       const { tags, rating, startTime, sort, offset, limit } = payload;
 
-      const conditions = [];
+      const conditions: SQL[] = [isNotNull(problems.problemStatement), sql`trim(${problems.problemStatement}) <> ''`];
 
-      if (tags?.length > 0) {
-        conditions.push(or(...tags.map((tag) => sql`json_contains(${problems.tags}, ${JSON.stringify(tag)})`)));
+      if (tags?.length) {
+        const tagCondition = or(...tags.map((tag) => sql`json_contains(${problems.tags}, json_array(${tag}))`));
+        if (tagCondition) conditions.push(tagCondition);
       }
 
       if (rating?.length === 2) {
@@ -232,11 +218,7 @@ export class DbService {
         })
         .from(problems)
         .innerJoin(contests, eq(problems.contestId, contests.contestId))
-        .where(
-          conditions.length
-            ? and(...conditions, isNotNull(problems.problemStatement), sql`trim(${problems.problemStatement}) <> ''`)
-            : undefined,
-        )
+        .where(and(...conditions))
         .orderBy(orderBy)
         .offset(offset)
         .limit(limit);
