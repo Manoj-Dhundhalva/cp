@@ -1,6 +1,6 @@
 import { db } from "@/db/connection.js";
 import { contests, problems } from "@/db/schema.js";
-import { and, arrayOverlaps, asc, desc, eq, gte, isNotNull, isNull, like, lte, or, sql } from "drizzle-orm";
+import { and, arrayOverlaps, asc, desc, eq, gte, isNotNull, isNull, like, lte, or, SQL, sql } from "drizzle-orm";
 import { CodeforcesService } from "./codeforces.service.js";
 import type { TProblemFilterBody } from "@/modules/problem/problem.schema.js";
 import type { TContestEditorial, TParsedProblem, TProblemIdentifier } from "@/modules/problem/problem.service.js";
@@ -156,7 +156,11 @@ export class DbService {
     try {
       const { tags, rating, startTime, sort, offset, limit } = payload;
 
-      const conditions = [];
+      const conditions: SQL[] = [
+        isNotNull(problems.problemStatement),
+        sql`trim(${problems.problemStatement}) <> ''`,
+        isNotNull(problems.rating),
+      ];
 
       if (tags?.length > 0) {
         conditions.push(arrayOverlaps(problems.tags, tags));
@@ -170,7 +174,6 @@ export class DbService {
 
       if (startTime?.length === 2) {
         const [from, to] = startTime;
-
         conditions.push(gte(contests.startTime, from));
         conditions.push(lte(contests.startTime, to));
       }
@@ -217,11 +220,7 @@ export class DbService {
         })
         .from(problems)
         .innerJoin(contests, eq(problems.contestId, contests.contestId))
-        .where(
-          conditions.length
-            ? and(...conditions, isNotNull(problems.problemStatement), sql`trim(${problems.problemStatement}) <> ''`)
-            : undefined,
-        )
+        .where(and(...conditions))
         .orderBy(orderBy)
         .offset(offset)
         .limit(limit);
