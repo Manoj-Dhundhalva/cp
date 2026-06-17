@@ -154,7 +154,7 @@ export class DbService {
 
   async getProblemsByFilter(payload: TProblemFilterBody) {
     try {
-      const { tags, rating, startTime, sort, offset, limit } = payload;
+      const { tags, ratings, startTime, sort, offset, limit } = payload;
 
       const conditions: SQL[] = [
         isNotNull(problems.problemStatement),
@@ -166,8 +166,8 @@ export class DbService {
         conditions.push(arrayOverlaps(problems.tags, tags));
       }
 
-      if (rating?.length === 2) {
-        const [minRating, maxRating] = rating;
+      if (ratings?.length === 2) {
+        const [minRating, maxRating] = ratings;
         conditions.push(gte(problems.rating, minRating));
         conditions.push(lte(problems.rating, maxRating));
       }

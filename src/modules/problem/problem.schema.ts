@@ -12,7 +12,7 @@ export const ContestSchema = z.object({
 export const ProblemFilterSchema = z
   .object({
     tags: z.array(z.string()).optional().default([]),
-    rating: z.tuple([z.number().int().min(800), z.number().int().min(800)]).optional(),
+    ratings: z.tuple([z.number().int().min(800), z.number().int().min(800)]).optional(),
     startTime: z.tuple([z.number().int().nonnegative(), z.number().int().nonnegative()]).optional(),
     offset: z.number().int().nonnegative().default(0),
     limit: z.number().int().positive().default(10),
@@ -37,7 +37,7 @@ export const ProblemFilterSchema = z
     return {
       ...data,
       tags: [...data.tags].sort(),
-      rating: normalizeRange(data.rating),
+      ratings: normalizeRange(data.ratings),
       startTime: normalizeRange(data.startTime),
     };
   });
